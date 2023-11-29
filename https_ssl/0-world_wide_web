@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#Information on subdomains
+
+get_dns_info() {
+  domain=$1
+  subdomain=$2
+
+    # If subdomain is not provided, set default subdomains to check
+    if [ -z "$subdomain" ]; then
+        subdomains=("www" "lb-01" "web-01" "web-02")
+    else
+        subdomains=("$subdomain")
+    fi
+
+    # Loop through each subdomain and retrieve DNS information
+    for sub in "${subdomains[@]}"; do
+    result=$(dig $sub.$domain | awk '/^'${sub}'\./ {print $4, $5}')
+    record_type=$(echo $result | awk '{print $1}')
+    associated_data=$(echo $result | awk '{print $2}')
+    echo "The subdomain $sub is a $record_type record and points to $associated_data"
+done
+
+}
+
+# Check if the required arguments are provided
+if [ "$#" -eq 1 ]; then
+    get_dns_info "$1"
+elif [ "$#" -eq 2 ]; then
+    get_dns_info "$1" "$2"
+else
+    echo "Usage: $0 domain [subdomain]"
+    exit 1
+fi
