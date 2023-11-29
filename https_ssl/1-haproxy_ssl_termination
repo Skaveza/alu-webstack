@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # HAProxy configuration for SSL termination with Let's Encrypt certificate
- defaults
-    log     global
-    mode    http
-    option  httplog
-    option  dontlognull
+
+# Defaults section
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
     timeout connect 5000
-    timeout client  50000
-    timeout server  50000
+    timeout client 50000
+    timeout server 50000
     errorfile 400 /etc/haproxy/errors/400.http
     errorfile 403 /etc/haproxy/errors/403.http
     errorfile 408 /etc/haproxy/errors/408.http
@@ -16,23 +18,27 @@
     errorfile 503 /etc/haproxy/errors/503.http
     errorfile 504 /etc/haproxy/errors/504.http
 
+# Frontend configuration for HTTPS
 frontend www-https
-    bind *:443 
+    bind *:443 ssl crt /etc/letsencrypt/live/www.thekaveza.tech/fullchain.pem
     mode http
     option httplog
     default_backend 5803-webs
 
+# Frontend configuration for HTTP, redirecting to HTTPS
 frontend www-http
     bind *:80
     mode http
     option httplog
     redirect scheme https code 301 if !{ ssl_fc }
 
+# Backend server configuration
 backend 5803-webs
     mode http
     balance roundrobin
     server 5803-web-01 3.89.55.73:80 check
     server 5803-web-02 107.22.149.20:80 check
     # Add more backend servers if required
+
  
 
